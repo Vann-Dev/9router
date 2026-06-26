@@ -196,7 +196,9 @@ function convertMessages(messages, tools, model) {
 
   const flushPending = () => {
     if (currentRole === "user") {
-      const content = pendingUserContent.join("\n\n").trim() || "continue";
+      // Use minimal placeholder "." instead of "continue" to avoid spam when
+      // user messages only contain tool results/images without text content.
+      const content = pendingUserContent.join("\n\n").trim() || ".";
       const userMsg = {
         userInputMessage: {
           content: content,
@@ -414,7 +416,7 @@ function convertMessages(messages, tools, model) {
       delete item.userInputMessage.userInputMessageContext.tools;
     }
     if (item.userInputMessage?.userInputMessageContext &&
-        Object.keys(item.userInputMessage.userInputMessageContext).length === 0) {
+      Object.keys(item.userInputMessage.userInputMessageContext).length === 0) {
       delete item.userInputMessage.userInputMessageContext;
     }
     if (item.userInputMessage && !item.userInputMessage.modelId) {
@@ -429,8 +431,8 @@ function convertMessages(messages, tools, model) {
   for (let i = 0; i < history.length; i++) {
     const current = history[i];
     if (current.userInputMessage &&
-        mergedHistory.length > 0 &&
-        mergedHistory[mergedHistory.length - 1].userInputMessage) {
+      mergedHistory.length > 0 &&
+      mergedHistory[mergedHistory.length - 1].userInputMessage) {
       const prev = mergedHistory[mergedHistory.length - 1];
       prev.userInputMessage.content += "\n\n" + current.userInputMessage.content;
       // Merge context: combine toolResults, images, etc.
@@ -485,7 +487,7 @@ function convertMessages(messages, tools, model) {
   const resolvedTools = firstHistoryTools;
 
   if (resolvedTools?.length > 0 &&
-      !currentMessage.userInputMessage.userInputMessageContext?.tools) {
+    !currentMessage.userInputMessage.userInputMessageContext?.tools) {
     if (!currentMessage.userInputMessage.userInputMessageContext) {
       currentMessage.userInputMessage.userInputMessageContext = {};
     }
