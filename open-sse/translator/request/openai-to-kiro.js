@@ -196,9 +196,7 @@ function convertMessages(messages, tools, model) {
 
   const flushPending = () => {
     if (currentRole === "user") {
-      // Use minimal placeholder "." instead of "continue" to avoid spam when
-      // user messages only contain tool results/images without text content.
-      const content = pendingUserContent.join("\n\n").trim() || ".";
+      const content = pendingUserContent.join("\n\n").trim() || "...";
       const userMsg = {
         userInputMessage: {
           content: content,

@@ -142,9 +142,7 @@ function convertClaudeMessagesToKiro(messages, tools, model) {
 
   const flushPending = () => {
     if (currentRole === ROLE.USER) {
-      // Use minimal placeholder "." instead of "continue" to avoid spam when
-      // user messages only contain tool results/images without text content.
-      const content = pendingUserContent.join("\n\n").trim() || ".";
+      const content = pendingUserContent.join("\n\n").trim() || "...";
       const userMsg = { userInputMessage: { content, modelId: model } };
 
       if (pendingImages.length > 0) {
