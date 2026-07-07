@@ -184,6 +184,7 @@ export class KiroExecutor extends BaseExecutor {
           // prompt contains <thinking_mode>enabled</thinking_mode>. Surface it
           // as OpenAI delta.reasoning_content so downstream translators can map
           // it back to Claude thinking blocks / Anthropic reasoning, etc.
+          // Note: emission can be disabled via config.emitReasoning flag.
           if (eventType === "reasoningContentEvent") {
             const reasoning = event.payload?.reasoningContentEvent || event.payload || {};
             const reasoningText = (typeof reasoning === "string")
@@ -193,24 +194,28 @@ export class KiroExecutor extends BaseExecutor {
               state.hasReasoningContent = true;
               state.totalContentLength += reasoningText.length;
 
-              const reasoningDelta = state.reasoningChunkCount === 0 && chunkIndex === 0
-                ? { role: "assistant", reasoning_content: reasoningText }
-                : { reasoning_content: reasoningText };
+              // Check config flag before emitting reasoning chunks
+              // (tracking above is preserved for token estimation)
+              if (this.config.emitReasoning !== false) {
+                const reasoningDelta = state.reasoningChunkCount === 0 && chunkIndex === 0
+                  ? { role: "assistant", reasoning_content: reasoningText }
+                  : { reasoning_content: reasoningText };
 
-              const chunk = {
-                id: responseId,
-                object: "chat.completion.chunk",
-                created,
-                model,
-                choices: [{
-                  index: 0,
-                  delta: reasoningDelta,
-                  finish_reason: null
-                }]
-              };
-              chunkIndex++;
-              state.reasoningChunkCount++;
-              controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(chunk)}\n\n`));
+                const chunk = {
+                  id: responseId,
+                  object: "chat.completion.chunk",
+                  created,
+                  model,
+                  choices: [{
+                    index: 0,
+                    delta: reasoningDelta,
+                    finish_reason: null
+                  }]
+                };
+                chunkIndex++;
+                state.reasoningChunkCount++;
+                controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(chunk)}\n\n`));
+              }
             }
           }
 

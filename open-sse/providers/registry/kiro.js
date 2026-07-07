@@ -23,6 +23,7 @@ export default {
       "https://q.us-east-1.amazonaws.com/generateAssistantResponse",
     ],
     format: "kiro",
+    emitReasoning: false,
     retry: {
       "429": 0,
     },
